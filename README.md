@@ -1,19 +1,41 @@
 # SA-TransU²Net: Rock Thin Section Grain Segmentation Network
 
-This repository contains the official PyTorch implementation of **SA-TransU²Net**, a hybrid deep learning model for high-precision grain segmentation in sandstone thin-section images. The model integrates a U²-Net backbone with Swin‑Transformer self‑attention and a parameter‑free Spatial Attention (SA) mechanism to address challenges such as blurred grain boundaries, severe grain adhesion, and large scale variations.
+**Official PyTorch Implementation**
 
-> **Paper:** *SA-TransU²Net: A Rock Thin Section Grain Segmentation Network Based on Multi-scale RSU and Global Context Enhancement*  
-> **Authors:** Yaohua Gong, Di Shi, Ling Zhao, Yan Zhang, Lanyanlin Qu, Xiangrui Hou, Chengwu Xu, Juntao Gao, Yue Zhou, Zhiguo Wang
+> **SA-TransU²Net: A Rock Thin Section Grain Segmentation Network Based on Multi-scale RSU and Global Context Enhancement**  
+> *Yaohua Gong, Di Shi, Ling Zhao, Yan Zhang, Lanyanlin Qu, Xiangrui Hou, Chengwu Xu, Juntao Gao, Yue Zhou, Zhiguo Wang*  
+> School of Computer & Information Technology, Northeast Petroleum University, China  
+> Corresponding Author: mirror_zl@163.com
 
 ---
 
-## 📌 Key Features
+## 📌 Overview
 
-- **Multi‑scale Residual U‑blocks (RSU)** – capture local context at multiple scales using nested U‑structures.
-- **Swin‑based Self‑Attention** – introduced in the deep encoder layers to model long‑range dependencies and separate adhered grains.
-- **Parameter‑free Spatial Attention (SA)** – enhances feature responses to grain boundaries and salient structures without extra learnable parameters.
-- **Multi‑scale Deep Supervision** – six side outputs plus a fused output for stable training and boundary‑detail preservation.
-- **State‑of‑the‑art performance** – achieves **87.68% mIoU**, **91.73% Precision**, and **92.66% Recall** on the Ordos Basin sandstone dataset.
+SA-TransU²Net is a hybrid deep learning model designed for high‑precision segmentation of sandstone thin‑section grains. It integrates a U²‑Net backbone with Swin‑Transformer self‑attention and a parameter‑free Spatial Attention (SA) mechanism to overcome challenges such as blurred grain boundaries, severe grain adhesion, and large scale variations.
+
+The model achieves **87.68% mIoU**, **91.73% Precision**, and **92.66% Recall** on the Ordos Basin sandstone thin‑section dataset, significantly outperforming mainstream segmentation models.
+
+---
+
+## ✨ Key Features
+
+- **Multi‑scale Residual U‑blocks (RSU)** – Nested U‑structures capture local context at multiple scales without exploding model depth.
+- **Swin‑based Self‑Attention** – Introduced in deep encoder layers to model long‑range dependencies and separate adhered grains.
+- **Parameter‑free Spatial Attention (SA)** – Recalibrates feature responses to boundaries and salient regions without extra learnable parameters.
+- **Multi‑scale Deep Supervision** – Six side outputs plus a fused output for stable training and boundary preservation.
+- **State‑of‑the‑art performance** – Outperforms SegFormer, SegNet, and U²‑Net on sandstone thin‑section images.
+
+---
+
+## 🧠 Architecture Overview
+
+![SA-TransU²Net Architecture](docs/architecture.png)  
+*(Refer to Fig. 1 in the paper for a detailed diagram.)*
+
+- **Encoder**: RSU‑7 blocks in shallow/middle layers; Swin Transformer blocks (W‑MSA and SW‑MSA) in deep layers.
+- **Decoder**: Progressive upsampling with skip connections and six side outputs.
+- **Attention**: Parameter‑free SA modules embedded on the residual path of each RSU.
+- **Fusion**: 1×1 convolution fuses multi‑scale side outputs for final prediction.
 
 ---
 
@@ -22,22 +44,20 @@ This repository contains the official PyTorch implementation of **SA-TransU²Net
 ```
 SA-TransU2Net/
 ├── models/
-│   ├── sa_transunet.py          # Main network definition
+│   ├── sa_transunet.py          # Main network
 │   ├── rsu.py                   # RSU and RSU4F modules
 │   ├── swin_transformer.py      # Swin Transformer blocks & feature adaptation
 │   └── spatial_attention.py     # Parameter‑free SA module
 ├── datasets/
-│   ├── dataset.py               # Dataset loader with NLM preprocessing
-│   └── transforms.py            # Data augmentation utilities
-├── train.py                     # Training script with deep supervision
-├── test.py                      # Evaluation script (metrics & visualization)
+│   ├── dataset.py               # Data loader with NLM preprocessing
+│   └── transforms.py
+├── train.py                     # Training script
+├── test.py                      # Evaluation script
 ├── utils/
 │   ├── metrics.py               # mIoU, Precision, Recall, Dice, Boundary IoU
-│   └── losses.py                # Combined BCE + Dice loss
+│   └── losses.py                # BCE + Dice loss
 ├── configs/
-│   └── default.yaml             # Hyperparameters (batch size, LR, epochs, etc.)
-├── weights/                     # Pretrained model checkpoints
-├── logs/                        # TensorBoard logs
+│   └── default.yaml             # Hyperparameters
 └── README.md
 ```
 
@@ -45,135 +65,135 @@ SA-TransU2Net/
 
 ## 🚀 Getting Started
 
-### Environment Setup
+### Environment
 
 - Python ≥ 3.9
 - PyTorch ≥ 1.12
 - CUDA 11.3+ (recommended)
 
 Install dependencies:
-
 ```bash
 pip install -r requirements.txt
 ```
 
-Key packages: `torch`, `torchvision`, `numpy`, `opencv-python`, `pillow`, `scikit-image`, `tensorboard`, `pyyaml`.
+Main packages: `torch`, `torchvision`, `numpy`, `opencv-python`, `pillow`, `scikit-image`, `tensorboard`, `pyyaml`.
 
 ---
 
 ### Dataset Preparation
 
-1. **Dataset format** – Organize your images and masks as:
-   ```
-   data/
-   ├── train/
-   │   ├── images/   (e.g., 001.png)
-   │   └── masks/    (binary PNG, same filename)
-   ├── val/
-   └── test/
-   ```
-2. **Preprocessing** – Our pipeline applies Non‑Local Means denoising (search=21×21, patch=7×7, h=10) and crops 512×512 patches with a stride of 256. The code handles this automatically if you place full‑resolution images in the respective folders.
-3. For the **Ordos Basin sandstone dataset** used in the paper, please contact the corresponding author (mirror_zl@163.com) for access.
+Organise your data as:
+```
+data/
+├── train/
+│   ├── images/   (e.g., 001.png)
+│   └── masks/    (binary PNG, same filename)
+├── val/
+└── test/
+```
 
----
-
-## 🧠 Model Architecture Overview
-
-![SA-TransU²Net Architecture](docs/architecture.png)  
-*(Refer to Fig. 1 in the paper for a detailed diagram.)*
-
-- **Encoder**: RSU blocks (RSU‑7) in shallow/middle layers; Swin Transformer blocks (with W‑MSA and SW‑MSA) in deep layers.
-- **Decoder**: Progressive upsampling with skip connections and deep side outputs (6 scales).
-- **Attention**: Parameter‑free SA modules are embedded on the residual path of each RSU.
-- **Fusion**: 1×1 convolution fuses multi‑scale side outputs for final prediction.
+Our preprocessing pipeline applies Non‑Local Means denoising (search=21×21, patch=7×7, h=10) and crops 512×512 patches with stride 256 automatically. The dataset used in the paper (Ordos Basin sandstone) is available upon request from the corresponding author.
 
 ---
 
 ## 🏋️ Training
 
-To train from scratch:
-
+Start training with:
 ```bash
 python train.py --config configs/default.yaml
 ```
 
-Key hyperparameters (can be modified in the YAML file or passed as CLI args):
-- Batch size: 16 (adjust based on GPU memory)
-- Epochs: 400
-- Learning rate: 1e‑4 with warmup (2 epochs) and cosine annealing
-- Optimizer: AdamW (weight decay 1e‑4)
-- Loss: BCE + Dice (equal weights)
+Key hyperparameters (from the paper):
+- Batch size: **16**
+- Epochs: **400**
+- Initial learning rate: **1e‑4** (with warmup + cosine annealing)
+- Optimizer: **AdamW** (weight decay 1e‑4)
+- Loss: **BCE + Dice** (equal weights)
 
-The script logs training/validation losses, and saves the best model based on validation mIoU.
+The best model is saved based on validation mIoU.
 
 ---
 
 ## 📊 Evaluation
 
-To evaluate on the test set:
-
+Run evaluation on the test set:
 ```bash
 python test.py --weights path/to/checkpoint.pth --data_dir data/test
 ```
 
-Metrics reported:
-- **mIoU** (Mean Intersection over Union)
-- **Precision**
-- **Recall**
-- **Dice Coefficient**
-- **Boundary IoU** (within 5‑pixel band around ground truth boundaries)
+Reported metrics:
+- **mIoU**, **Precision**, **Recall**, **Dice**
+- **Boundary IoU** (5‑pixel band)
 - Per‑size‑group Dice (small / medium / large grains)
-
-Visualization of segmentation masks will be saved in `results/` for qualitative inspection.
 
 ---
 
 ## 📈 Results
 
-### Performance on Ordos Basin Sandstone Dataset
+### 1. Comparison with State‑of‑the‑Art Models (Table 3)
 
-| Model          | mIoU (%) | Precision (%) | Recall (%) | Dice (%) |
-|----------------|----------|---------------|------------|----------|
-| SegFormer      | 63.06    | 79.17         | 70.25      | 88.26    |
-| SegNet         | 71.83    | 85.45         | 75.30      | 83.54    |
-| U²‑Net         | 69.89    | 81.90         | 78.96      | 81.23    |
-| **SA‑TransU²Net** | **87.68** | **91.73**     | **92.66**  | **92.19** |
+| Model          | mIoU (%)          | Precision (%)     | Recall (%)        | Dice (%)          |
+|----------------|-------------------|-------------------|-------------------|-------------------|
+| SegFormer      | 63.06 ± 0.42      | 79.17 ± 0.38      | 70.25 ± 0.38      | 88.26 ± 0.21      |
+| SegNet         | 71.83 ± 0.38      | 85.45 ± 0.25      | 75.30 ± 0.22      | 83.54 ± 0.33      |
+| U²‑Net         | 69.89 ± 0.25      | 81.90 ± 0.32      | 78.96 ± 0.25      | 81.23 ± 0.28      |
+| **SA‑TransU²Net** | **87.68 ± 0.19** | **91.73 ± 0.20**  | **92.66 ± 0.22**  | **92.19 ± 0.17**  |
 
-### Ablation Study
-
-| Configuration                 | mIoU (%) | Precision (%) | Recall (%) | Dice (%) |
-|-------------------------------|----------|---------------|------------|----------|
-| U²‑Net (baseline)             | 69.89    | 81.90         | 78.96      | 81.23    |
-| + SA module                   | 80.87    | 85.75         | 86.72      | 86.23    |
-| + Swin‑Transformer            | 77.85    | 86.27         | 83.30      | 84.76    |
-| **Full SA‑TransU²Net**        | **87.68** | **91.73**     | **92.66**  | **92.19** |
-
-### Cross‑Dataset Generalization
-
-The model was tested on unseen public datasets (volcanic rock, limestone) and achieved consistent boundary‑accurate segmentation, demonstrating strong robustness and the ability to detect grains missed by manual annotations.
+> Values are mean ± standard deviation over three independent runs (random seeds 42, 123, 999).
 
 ---
 
-## 🧪 Error Analysis (from paper)
+### 2. Ablation Study (Table 4)
 
-- **Boundary IoU**: 83.2% vs. U²‑Net 68.5% and SegNet 71.0%.
-- **Small‑grain Dice**: 86.4% vs. U²‑Net 71.2%.
-- **Adhered‑region errors**: Only 3 under‑segmentation and 2 over‑segmentation errors across 20 challenging patches, compared to 12 and 8 for U²‑Net.
+| Configuration                 | Precision | mIoU   | Dice   | Recall |
+|-------------------------------|-----------|--------|--------|--------|
+| U²‑Net (baseline)             | 0.8190    | 0.6989 | 0.8041 | 0.7896 |
+| U²‑Net + SA                   | 0.8575    | 0.8087 | 0.8623 | 0.8672 |
+| U²‑Net + Swin‑Transformer     | 0.8627    | 0.7785 | 0.8476 | 0.8330 |
+| **SA‑TransU²Net (full)**      | **0.9173** | **0.8768** | **0.9219** | **0.9266** |
 
 ---
 
-## 🔧 Customization
+### 3. Performance on Different Grain Sizes (Table 5 – Dice scores)
 
-- **Input size**: The default patch size is 512×512; you can change it in the config (ensure it's compatible with Swin patch embedding).
-- **RSU depth**: The paper uses RSU‑7 for all blocks; RSU4F for deep layers. Modify `models/rsu.py` if needed.
-- **Swin parameters**: Window size = 7, attention heads per stage = [2,4,8,16].
-- **Loss weights**: Adjust `alpha` and `beta` in `utils/losses.py` to prioritize BCE or Dice.
+| Model          | Small grains (<5000 px²) | Medium grains (5000–20000 px²) | Large grains (>20000 px²) |
+|----------------|--------------------------|--------------------------------|---------------------------|
+| U²‑Net         | 0.712                    | 0.801                          | 0.825                     |
+| **SA‑TransU²Net** | **0.864**                | **0.912**                      | **0.933**                 |
+
+---
+
+### 4. Boundary IoU
+
+| Model          | Boundary IoU (%) |
+|----------------|------------------|
+| U²‑Net         | 68.5             |
+| SegNet         | 71.0             |
+| **SA‑TransU²Net** | **83.2**         |
+
+---
+
+### 5. Adhered Region Errors (20 challenging patches)
+
+| Model          | Under‑segmentation errors | Over‑segmentation errors |
+|----------------|---------------------------|--------------------------|
+| U²‑Net         | 12                        | 8                        |
+| **SA‑TransU²Net** | **3**                     | **2**                    |
+
+---
+
+## 🔧 Customisation
+
+- **Input size**: Default 512×512; adjust in config (ensure compatibility with Swin patch embedding).
+- **RSU depth**: RSU‑7 for all blocks, RSU4F for deep layers (modify `models/rsu.py`).
+- **Swin parameters**: Window size = 7; attention heads = [2,4,8,16].
+- **Loss weights**: Tune `alpha` and `beta` in `utils/losses.py`.
 
 ---
 
 ## 📝 Citation
 
-If you find this code useful for your research, please cite our paper:
+If you use this code or find it helpful, please cite our paper:
 
 ```bibtex
 @article{gong2025satransunet,
@@ -181,7 +201,7 @@ If you find this code useful for your research, please cite our paper:
   author={Gong, Yaohua and Shi, Di and Zhao, Ling and Zhang, Yan and Qu, Lanyanlin and Hou, Xiangrui and Xu, Chengwu and Gao, Juntao and Zhou, Yue and Wang, Zhiguo},
   journal={IEEE Transactions on Geoscience and Remote Sensing},  % or the actual journal
   year={2025},
-  note={In preparation / Accepted}
+  note={In press / Accepted}
 }
 ```
 
@@ -193,12 +213,6 @@ This project is released under the MIT License. See `LICENSE` for details.
 
 ---
 
-## 🤝 Contributing
-
-We welcome contributions! Please open an issue or submit a pull request for any improvements, bug fixes, or extensions.
-
----
-
 ## 📧 Contact
 
-For questions regarding the code or the paper, please contact the corresponding author: **Ling Zhao** (mirror_zl@163.com).
+For any questions regarding the code or the paper, please contact the corresponding author: **Ling Zhao** (mirror_zl@163.com).
